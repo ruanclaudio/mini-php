@@ -1,3 +1,7 @@
-$preco = 100;
-valor = 15;
-$total = $preco + valor;
+{
+    $a = 10;
+    
+    {
+        $b = 20;
+    }
+}
