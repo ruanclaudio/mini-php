@@ -32,13 +32,17 @@ class PHPSyntaxValidator:
         self.tokens = tokens
         self.i = 0
         self.semantic_analyzer = PHPSemanticAnalyzer()
+        self.block_count = 0
 
     @staticmethod
     def generate_tokens(file_source_code: str) -> list:
         token_specification = [
             ('NUMBER', r'\d+(\.\d*)?'),
+            ('LOGICAL_OPERATOR', r'&&|\|\||!'),
             ('ASSIGN', r'='),
             ('END', r';'),
+            ('LBRACE', r'\{'),
+            ('RBRACE', r'\}'),
             ('ID', r'\$[a-zA-Z_][a-zA-Z0-9_]*'),
             ('INVALID_ID', r'[a-zA-Z_][a-zA-Z0-9_]*'),
             ('OPERATOR', r'[+\-*/]'),
@@ -94,19 +98,31 @@ class PHPSyntaxValidator:
     def validate_value(self) -> bool:
         if self.i < len(self.tokens):
             token_type, token_value = self.tokens[self.i]
+            if token_type == 'LOGICAL_OPERATOR' and token_value == '!':
+                self.i += 1
+                return self.validate_value()
             if token_type in ['NUMBER', 'ID', 'CHAR_LITERAL']:
                 if token_type == "ID":
                     if not self.semantic_analyzer.is_variable_initialized(token_value):
                         return False
                 self.i += 1
-                if self.i < len(self.tokens):
-                    if self.tokens[self.i][0] == 'OPERATOR':
+                while self.i < len(self.tokens):
+
+                    next_type, next_value = self.tokens[self.i]
+                    if next_type == 'OPERATOR':
                         self.i += 1
-                        return self.validate_value()
-                    elif self.tokens[self.i][0] == 'END':
+                        if not self.validate_value():
+                            return False              
+                    elif next_type == 'LOGICAL_OPERATOR':
+                        self.i += 1
+                        if not self.validate_value():
+                            return False
+                    elif next_type == 'END':
                         return self._end()
-                print("Error: Expected value or ';' to end instruction")
-                return False
+                    else:
+                        print("Error: Invalid expression")
+                        return False
+                return True
 
         print("Error: Expected a number, variable, or character literal")
         return False
@@ -116,6 +132,35 @@ class PHPSyntaxValidator:
             self.i += 1
             return True
         print("Error: Expected ';' at the end of instruction")
+        return False
+    
+    def validate_block(self) -> bool:
+        if self.tokens[self.i][0] == 'LBRACE':
+            self.block_count += 1
+            self.i += 1
+            while self.i < len(self.tokens):
+                token_type = self.tokens[self.i][0]
+                if token_type == 'NEWLINE':
+                    self.i += 1
+                    continue
+
+                elif token_type == 'ID':
+                    if not self.validate_assignment():
+                        return False
+                elif token_type == 'LBRACE':
+                    if not self.validate_block():
+                        return False
+                elif token_type == 'RBRACE':
+                    self.block_count -= 1
+                    self.i += 1
+                    return True
+                else:
+                    print(f"Error: Unexpected token inside block: {token_type}")
+                    return False
+
+            print("Error: Block was not closed with '}'")
+            return False
+
         return False
 
     def parse(self) -> bool:
@@ -128,9 +173,18 @@ class PHPSyntaxValidator:
             if token_type == 'ID':
                 if not self.validate_assignment():
                     return False
+            elif token_type == 'LBRACE':
+                if not self.validate_block():
+                    return False
+            elif token_type == 'RBRACE':
+                print("Error: Closing block '}' without opening block")
+                return False
             else:
                 print(f"Error: Unexpected token {token_type} at start of instruction")
                 return False
+        if self.block_count != 0:
+            print("Error: Some blocks were not closed")
+            return False
         print("Success: Code is syntactically valid PHP assignment.")
         return True
 
