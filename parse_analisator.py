@@ -1,7 +1,6 @@
 import re
 from dataclasses import dataclass
 
-
 def read_source_code(file_code_path):
     with open(file_code_path, 'r', encoding='utf-8') as file:
         return file.read()
@@ -60,35 +59,27 @@ class PHPSyntaxValidator:
         token_specification = [
             ('NEWLINE', r'\n'),
             ('SKIP', r'[ \t\r]+'),
-
             ('COMMENT', r'//[^\n]*'),
-
             ('FUNCTION', r'\bfunction\b'),
             ('IF', r'\bif\b'),
             ('ELSE', r'\belse\b'),
             ('WHILE', r'\bwhile\b'),
             ('RETURN', r'\breturn\b'),
-
             ('NUMBER', r'\d+(\.\d+)?'),
             ('STRING', r'"([^"\\]|\\.)*"'),
             ('CHAR_LITERAL', r"'([^'\\]|\\.)*'"),
-
             ('RELATIONAL_OPERATOR', r'==|!=|>|<'),
             ('LOGICAL_OPERATOR', r'&&|\|\||!'),
             ('ASSIGN', r'='),
             ('OPERATOR', r'[+\-*/]'),
-
             ('LPAREN', r'\('),
             ('RPAREN', r'\)'),
             ('LBRACE', r'\{'),
             ('RBRACE', r'\}'),
             ('COMMA', r','),
             ('END', r';'),
-
             ('ID', r'\$[a-zA-Z_][a-zA-Z0-9_]*'),
-
             ('FUNCTION_NAME', r'[a-zA-Z_][a-zA-Z0-9_]*'),
-
             ('MISMATCH', r'.'),
         ]
 
@@ -182,7 +173,6 @@ class PHPSyntaxValidator:
         return False
 
     def synchronize(self):
-        """Recuperação de erro: pula até um ponto seguro e continua lendo o restante."""
         while self.current() is not None:
             if self.check('END'):
                 self.advance()

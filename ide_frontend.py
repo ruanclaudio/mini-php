@@ -2,9 +2,7 @@ import tkinter as tk
 from tkinter import scrolledtext
 import io
 from contextlib import redirect_stdout
-
 from parse_analisator import PHPSyntaxValidator
-
 
 def run_analysis():
     code = editor.get("1.0", tk.END).strip()
