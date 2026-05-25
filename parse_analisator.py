@@ -1,11 +1,6 @@
 import re
 from dataclasses import dataclass
 
-def read_source_code(file_code_path):
-    with open(file_code_path, 'r', encoding='utf-8') as file:
-        return file.read()
-
-
 @dataclass
 class Token:
     type: str
@@ -442,18 +437,3 @@ class PHPSyntaxValidator:
             return False
 
         return ok
-
-
-if __name__ == "__main__":
-    file_path = "source_code.txt"
-    source_code = read_source_code(file_path)
-    print(f"Source code:\n{source_code}")
-
-    generated_tokens = PHPSyntaxValidator.generate_tokens(source_code)
-    syntax_validator = PHPSyntaxValidator(tokens=generated_tokens)
-
-    print("Identified tokens:")
-    for token in generated_tokens:
-        print(token)
-    print("\nSyntactic/Semantic Analysis:")
-    syntax_validator.parse()

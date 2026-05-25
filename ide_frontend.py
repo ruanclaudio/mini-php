@@ -1,50 +1,92 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, filedialog
 import io
 from contextlib import redirect_stdout
 from parse_analisator import PHPSyntaxValidator
 
-def run_analysis():
-    code = editor.get("1.0", tk.END).strip()
 
-    console.config(state=tk.NORMAL)
-    console.delete("1.0", tk.END)
+def main():
+    def update_line_numbers(*_):
+        line_count = int(editor.index(tk.END).split(".")[0]) - 1
+        numbers = "\n".join(str(i) for i in range(1, line_count + 1))
+        line_numbers.config(state=tk.NORMAL)
+        line_numbers.delete("1.0", tk.END)
+        line_numbers.insert(tk.END, numbers)
+        line_numbers.config(state=tk.DISABLED)
 
-    if not code:
-        console.insert(tk.END, "Por favor, insira algum código PHP para analisar.")
+    def open_file():
+        filepath = filedialog.askopenfilename(
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
+        )
+        if filepath:
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+            editor.delete("1.0", tk.END)
+            editor.insert(tk.END, content)
+            update_line_numbers()
+
+    def run_analysis():
+        code = editor.get("1.0", tk.END).strip()
+
+        console.config(state=tk.NORMAL)
+        console.delete("1.0", tk.END)
+
+        if not code:
+            console.insert(tk.END, "Por favor, insira algum código PHP para analisar.")
+            console.config(state=tk.DISABLED)
+            return
+
+        f = io.StringIO()
+
+        with redirect_stdout(f):
+            print(f"Source code:\n{code}\n")
+
+            generated_tokens = PHPSyntaxValidator.generate_tokens(code)
+            syntax_validator = PHPSyntaxValidator(tokens=generated_tokens)
+
+            print("Identified tokens:")
+            for token in generated_tokens:
+                print(token)
+
+            print("\nSyntactic/Semantic Analysis:")
+            syntax_validator.parse()
+
+        output = f.getvalue()
+        error_keywords = ("Error", "Unrecognized", "not closed", "without opening")
+        for line in output.splitlines(keepends=True):
+            tag = "error" if any(kw in line for kw in error_keywords) else ""
+            console.insert(tk.END, line, tag)
         console.config(state=tk.DISABLED)
-        return
 
-    f = io.StringIO()
+    root = tk.Tk()
+    root.title("Mini PHP IDE")
+    root.geometry("900x650")
+    root.configure(bg="#2b2b2b")
 
-    with redirect_stdout(f):
-        print(f"Source code:\n{code}\n")
+    tk.Label(root, text="Editor de Código (Mini-PHP):", fg="white", bg="#2b2b2b", font=("Arial", 12, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
 
-        generated_tokens = PHPSyntaxValidator.generate_tokens(code)
-        syntax_validator = PHPSyntaxValidator(tokens=generated_tokens)
+    editor_frame = tk.Frame(root, bg="#1e1e1e")
+    editor_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
-        print("Identified tokens:")
-        for token in generated_tokens:
-            print(token)
+    line_numbers = tk.Text(editor_frame, width=4, bg="#2b2b2b", fg="#858585",
+                           font=("Courier New", 12), state=tk.DISABLED, takefocus=0,
+                           borderwidth=0)
+    line_numbers.pack(side=tk.LEFT, fill=tk.Y)
 
-        print("\nSyntactic/Semantic Analysis:")
-        syntax_validator.parse()
+    scrollbar = tk.Scrollbar(editor_frame)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-    output = f.getvalue()
-    console.insert(tk.END, output)
-    console.config(state=tk.DISABLED)
+    editor = tk.Text(editor_frame, bg="#1e1e1e", fg="#d4d4d4",
+                     font=("Courier New", 12), insertbackground="white",
+                     yscrollcommand=lambda *a: (scrollbar.set(*a), update_line_numbers()))
+    editor.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    scrollbar.config(command=editor.yview)
 
+    editor.bind("<KeyRelease>", update_line_numbers)
+    editor.bind("<MouseWheel>", update_line_numbers)
+    editor.bind("<Button-1>", update_line_numbers)
 
-root = tk.Tk()
-root.title("Mini PHP IDE")
-root.geometry("900x650")
-root.configure(bg="#2b2b2b")
-
-tk.Label(root, text="Editor de Código (Mini-PHP):", fg="white", bg="#2b2b2b", font=("Arial", 12, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
-editor = scrolledtext.ScrolledText(root, height=18, bg="#1e1e1e", fg="#d4d4d4", font=("Courier New", 12), insertbackground="white")
-editor.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-
-codigo_exemplo = '''$numero = 10;
+    codigo_exemplo = '''$numero = 10;
 $limite = 20;
 
 function processar($valor) {
@@ -55,13 +97,18 @@ function processar($valor) {
     return $valor;
 }
 '''
-editor.insert(tk.END, codigo_exemplo)
+    editor.insert(tk.END, codigo_exemplo)
+    update_line_numbers()
 
-btn_run = tk.Button(root, text="▶ Rodar Analisador", bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), command=run_analysis)
-btn_run.pack(pady=5)
+    btn_run = tk.Button(root, text="▶ Rodar Analisador", bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), command=run_analysis)
+    btn_run.pack(pady=5)
 
-tk.Label(root, text="Console (Saída do Compilador):", fg="white", bg="#2b2b2b", font=("Arial", 12, "bold")).pack(anchor="w", padx=10)
-console = scrolledtext.ScrolledText(root, height=12, bg="#000000", fg="#00ff00", font=("Courier New", 11), state=tk.DISABLED)
-console.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+    btn_open = tk.Button(root, text="Abrir Arquivo .txt", bg="#2196F3", fg="white", font=("Arial", 12, "bold"), command=open_file)
+    btn_open.pack(pady=5)
 
-root.mainloop()
+    tk.Label(root, text="Console (Saída do Compilador):", fg="white", bg="#2b2b2b", font=("Arial", 12, "bold")).pack(anchor="w", padx=10)
+    console = scrolledtext.ScrolledText(root, height=12, bg="#000000", fg="#00ff00", font=("Courier New", 11), state=tk.DISABLED)
+    console.tag_config("error", foreground="red")
+    console.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
+
+    root.mainloop()
