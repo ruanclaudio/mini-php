@@ -8,21 +8,6 @@ class Token:
     line: int
     column: int
 
-    def __iter__(self):
-        yield self.type
-        yield self.value
-
-    def __getitem__(self, index):
-        if index == 0:
-            return self.type
-        if index == 1:
-            return self.value
-        if index == 2:
-            return self.line
-        if index == 3:
-            return self.column
-        raise IndexError(index)
-
     def __repr__(self):
         return f"({self.type}, {self.value!r}, line={self.line}, col={self.column})"
 

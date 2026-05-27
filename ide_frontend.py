@@ -65,8 +65,17 @@ def main():
 
     tk.Label(root, text="Editor de Código (Mini-PHP):", fg="white", bg="#2b2b2b", font=("Arial", 12, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
 
-    editor_frame = tk.Frame(root, bg="#1e1e1e")
-    editor_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+    btn_run = tk.Button(root, text="▶ Rodar Analisador", bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), command=run_analysis)
+    btn_run.pack(pady=5)
+
+    btn_open = tk.Button(root, text="Abrir Arquivo .txt", bg="#2196F3", fg="white", font=("Arial", 12, "bold"), command=open_file)
+    btn_open.pack(pady=5)
+
+    paned = tk.PanedWindow(root, orient=tk.VERTICAL, bg="#2b2b2b", sashwidth=6, sashrelief=tk.RAISED)
+    paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+    editor_frame = tk.Frame(paned, bg="#1e1e1e")
+    paned.add(editor_frame, minsize=100, stretch="always")
 
     line_numbers = tk.Text(editor_frame, width=4, bg="#2b2b2b", fg="#858585",
                            font=("Courier New", 12), state=tk.DISABLED, takefocus=0,
@@ -100,14 +109,11 @@ function processar($valor) {
     editor.insert(tk.END, codigo_exemplo)
     update_line_numbers()
 
-    btn_run = tk.Button(root, text="▶ Rodar Analisador", bg="#4CAF50", fg="white", font=("Arial", 12, "bold"), command=run_analysis)
-    btn_run.pack(pady=5)
+    console_frame = tk.Frame(paned, bg="#2b2b2b")
+    paned.add(console_frame, minsize=80, stretch="always")
 
-    btn_open = tk.Button(root, text="Abrir Arquivo .txt", bg="#2196F3", fg="white", font=("Arial", 12, "bold"), command=open_file)
-    btn_open.pack(pady=5)
-
-    tk.Label(root, text="Console (Saída do Compilador):", fg="white", bg="#2b2b2b", font=("Arial", 12, "bold")).pack(anchor="w", padx=10)
-    console = scrolledtext.ScrolledText(root, height=12, bg="#000000", fg="#00ff00", font=("Courier New", 11), state=tk.DISABLED)
+    tk.Label(console_frame, text="Console (Saída do Compilador):", fg="white", bg="#2b2b2b", font=("Arial", 12, "bold")).pack(anchor="w", padx=10, pady=(4, 0))
+    console = scrolledtext.ScrolledText(console_frame, height=8, bg="#000000", fg="#00ff00", font=("Courier New", 11), state=tk.DISABLED)
     console.tag_config("error", foreground="red")
     console.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
 
