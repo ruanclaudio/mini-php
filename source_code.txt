@@ -1,7 +1,8 @@
-{
-    $a = 10;
-    
-    {
-        $b = 20;
-    }
+$número = 10;
+$limite = 20;
+function processar($valor) {
+if ($valor < 100) {
+$valor = $valor * 2;
+}
+return $valor;
 }
