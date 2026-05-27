@@ -54,7 +54,7 @@ class PHPSyntaxValidator:
         token_specification = [
             ('NEWLINE', r'\n'),
             ('SKIP', r'[ \t\r]+'),
-            ('COMMENT', r'//[^\n]*'),
+            ('COMMENT', r'/\*[\s\S]*?\*/|//[^\n]*|#[^\n]*'),
             ('FUNCTION', r'\bfunction\b'),
             ('IF', r'\bif\b'),
             ('ELSE', r'\belse\b'),
@@ -63,7 +63,7 @@ class PHPSyntaxValidator:
             ('NUMBER', r'\d+(\.\d+)?'),
             ('STRING', r'"([^"\\]|\\.)*"'),
             ('CHAR_LITERAL', r"'([^'\\]|\\.)*'"),
-            ('RELATIONAL_OPERATOR', r'==|!=|>|<'),
+            ('RELATIONAL_OPERATOR', r'>=|<=|==|!=|>|<'),
             ('LOGICAL_OPERATOR', r'&&|\|\||!'),
             ('ASSIGN', r'='),
             ('OPERATOR', r'[+\-*/]'),
@@ -73,8 +73,8 @@ class PHPSyntaxValidator:
             ('RBRACE', r'\}'),
             ('COMMA', r','),
             ('END', r';'),
-            ('ID', r'\$[a-zA-Z_][a-zA-Z0-9_]*'),
-            ('FUNCTION_NAME', r'[a-zA-Z_][a-zA-Z0-9_]*'),
+            ('ID', r'\$[a-zA-Z_À-ÿ][a-zA-Z0-9_À-ÿ]*'),
+            ('FUNCTION_NAME', r'[a-zA-Z_À-ÿ][a-zA-Z0-9_À-ÿ]*'),
             ('MISMATCH', r'.'),
         ]
 
