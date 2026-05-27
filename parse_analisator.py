@@ -241,7 +241,7 @@ class PHPSyntaxValidator:
         return ok
 
     def validate_assignment(self) -> bool:
-        var_token = self.advance()  # ID
+        var_token = self.advance()
 
         if not self.consume('ASSIGN', "Expected assignment operator '=' after variable"):
             return False
